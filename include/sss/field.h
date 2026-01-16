@@ -1,7 +1,7 @@
 #ifndef SSS_FIELD_H
 #define SSS_FIELD_H
 
-#include <stdint. h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -103,3 +103,4 @@ int gf256_init_tables(void);
 #endif
 
 #endif /* SSS_FIELD_H */
+

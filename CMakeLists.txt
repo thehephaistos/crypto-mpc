@@ -45,7 +45,7 @@ if(SODIUM_FOUND)
     include_directories(${SODIUM_INCLUDE_DIRS})
     link_directories(${SODIUM_LIBRARY_DIRS})
 else()
-    message(FATAL_ERROR "libsodium not found! Install with: brew install libsodium")
+    message(FATAL_ERROR "libsodium not found!  Install with: brew install libsodium")
 endif()
 
 # ============================================================================
@@ -57,27 +57,28 @@ include_directories(
 )
 
 # ============================================================================
-# Source Files
+# Source Files (Only include files that exist)
 # ============================================================================
 set(CORE_SOURCES
-    src/core/secret_sharing.c
-    src/core/polynomial.c
     src/core/field_arithmetic.c
+    # src/core/secret_sharing. c        # TODO: Not created yet
+    # src/core/polynomial.c             # TODO: Not created yet
 )
 
-set(ALGORITHM_SOURCES
-    src/algorithms/shamir.c
-)
-
-set(UTIL_SOURCES
-    src/utils/random.c
-    src/utils/error.c
-)
+# Temporarily comment out until we create these files
+# set(ALGORITHM_SOURCES
+#     src/algorithms/shamir.c
+# )
+# 
+# set(UTIL_SOURCES
+#     src/utils/random.c
+#     src/utils/error.c
+# )
 
 set(ALL_SOURCES
     ${CORE_SOURCES}
-    ${ALGORITHM_SOURCES}
-    ${UTIL_SOURCES}
+    # ${ALGORITHM_SOURCES}              # TODO:  Uncomment later
+    # ${UTIL_SOURCES}                   # TODO: Uncomment later
 )
 
 # ============================================================================
@@ -86,35 +87,33 @@ set(ALL_SOURCES
 add_library(sss STATIC ${ALL_SOURCES})
 
 target_include_directories(sss PUBLIC
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE: ${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(sss PUBLIC ${SODIUM_LIBRARIES})
 
 # ============================================================================
-# Testing
+# Testing (Commented out until we create test files)
 # ============================================================================
-enable_testing()
-
-# Unit tests
-add_executable(test_unit
-    tests/unit/test_secret_sharing. c
-    tests/unit/test_polynomial.c
-)
-
-target_link_libraries(test_unit PRIVATE sss)
-
-add_test(NAME UnitTests COMMAND test_unit)
+# enable_testing()
+# 
+# add_executable(test_unit
+#     tests/unit/test_secret_sharing.c
+#     tests/unit/test_polynomial.c
+# )
+# 
+# target_link_libraries(test_unit PRIVATE sss)
+# add_test(NAME UnitTests COMMAND test_unit)
 
 # ============================================================================
-# Examples
+# Examples (Commented out until we create example files)
 # ============================================================================
-add_executable(basic_example examples/basic/simple_split.c)
-target_link_libraries(basic_example PRIVATE sss)
-
-add_executable(advanced_example examples/advanced/threshold_demo.c)
-target_link_libraries(advanced_example PRIVATE sss)
+# add_executable(basic_example examples/basic/simple_split.c)
+# target_link_libraries(basic_example PRIVATE sss)
+# 
+# add_executable(advanced_example examples/advanced/threshold_demo.c)
+# target_link_libraries(advanced_example PRIVATE sss)
 
 # ============================================================================
 # Installation Rules
