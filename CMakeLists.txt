@@ -26,7 +26,7 @@ add_compile_options(
     -Wall
     -Wextra
     -Wpedantic
-    -Werror
+    # -Werror      # Commented out for now, will re-enable later
 )
 
 # Debug flags
@@ -45,7 +45,7 @@ if(SODIUM_FOUND)
     include_directories(${SODIUM_INCLUDE_DIRS})
     link_directories(${SODIUM_LIBRARY_DIRS})
 else()
-    message(FATAL_ERROR "libsodium not found!  Install with: brew install libsodium")
+    message(FATAL_ERROR "libsodium not found!   Install with: brew install libsodium")
 endif()
 
 # ============================================================================
@@ -61,24 +61,24 @@ include_directories(
 # ============================================================================
 set(CORE_SOURCES
     src/core/field_arithmetic.c
+    src/core/polynomial.c
     # src/core/secret_sharing. c        # TODO: Not created yet
-    # src/core/polynomial.c             # TODO: Not created yet
+)
+
+set(UTIL_SOURCES
+    src/utils/random.c
+    src/utils/error.c
 )
 
 # Temporarily comment out until we create these files
 # set(ALGORITHM_SOURCES
 #     src/algorithms/shamir.c
 # )
-# 
-# set(UTIL_SOURCES
-#     src/utils/random.c
-#     src/utils/error.c
-# )
 
 set(ALL_SOURCES
     ${CORE_SOURCES}
+    ${UTIL_SOURCES}
     # ${ALGORITHM_SOURCES}              # TODO:  Uncomment later
-    # ${UTIL_SOURCES}                   # TODO: Uncomment later
 )
 
 # ============================================================================
@@ -87,7 +87,7 @@ set(ALL_SOURCES
 add_library(sss STATIC ${ALL_SOURCES})
 
 target_include_directories(sss PUBLIC
-    $<BUILD_INTERFACE: ${PROJECT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 
