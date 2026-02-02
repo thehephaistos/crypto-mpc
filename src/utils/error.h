@@ -43,4 +43,6 @@ static inline int sss_is_error(int error_code) {
 }
 #endif
 
-#endif /* SSS_UTILS_ERROR_H */
+#endif 
+
+/* SSS_UTILS_ERROR_H */

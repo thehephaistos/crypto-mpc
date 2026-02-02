@@ -62,12 +62,14 @@ include_directories(
 set(CORE_SOURCES
     src/core/field_arithmetic.c
     src/core/polynomial.c
-    # src/core/secret_sharing. c        # TODO: Not created yet
+    src/core/secret_sharing.c
+    src/core/mpc.c
 )
 
 set(UTIL_SOURCES
     src/utils/random.c
     src/utils/error.c
+    src/utils/secure_memory.c
 )
 
 # Temporarily comment out until we create these files
@@ -114,6 +116,28 @@ target_link_libraries(sss PUBLIC ${SODIUM_LIBRARIES})
 # 
 # add_executable(advanced_example examples/advanced/threshold_demo.c)
 # target_link_libraries(advanced_example PRIVATE sss)
+
+# ============================================================================
+# Simple Test Executable
+# ============================================================================
+add_executable(simple_test tests/simple_test.c)
+target_link_libraries(simple_test PRIVATE sss)
+
+# Comprehensive test executable
+add_executable(comprehensive_test tests/comprehensive_test.c)
+target_link_libraries(comprehensive_test PRIVATE sss)
+
+# Secure memory test executable
+add_executable(secure_memory_test tests/secure_memory_test.c)
+target_link_libraries(secure_memory_test PRIVATE sss)
+
+# MPC foundation test executable
+add_executable(mpc_foundation_test tests/mpc_foundation_test.c)
+target_link_libraries(mpc_foundation_test PRIVATE sss)
+
+# MPC demo executable
+add_executable(mpc_demo tests/mpc_demo.c)
+target_link_libraries(mpc_demo PRIVATE sss)
 
 # ============================================================================
 # Installation Rules

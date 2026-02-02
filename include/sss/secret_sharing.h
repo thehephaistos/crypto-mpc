@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <sodium.h>
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -85,3 +86,4 @@ void sss_wipe_memory(void *data, size_t len);
 #endif
 
 #endif /* SSS_SECRET_SHARING_H */
+

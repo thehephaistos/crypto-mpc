@@ -104,3 +104,4 @@ void sss_polynomial_wipe(sss_polynomial_t *poly);
 #endif
 
 #endif /* SSS_POLYNOMIAL_H */
+
