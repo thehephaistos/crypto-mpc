@@ -232,6 +232,78 @@ void mpc_wipe_share(mpc_share_t *share);
  */
 int mpc_validate_share(const mpc_context_t *ctx, const mpc_share_t *share);
 
+/* ========================================================================
+ * Secure Arithmetic Operations
+ * ======================================================================== */
+
+/**
+ * Securely add two shared secrets.
+ * Given shares of X and shares of Y, compute shares of (X + Y).
+ * No party learns X or Y, only the final result.
+ * 
+ * Mathematical basis:
+ *   share_i(X) + share_i(Y) = share_i(X + Y)
+ * 
+ * @param ctx        MPC context
+ * @param shares_x   Shares of first value (array of num_shares)
+ * @param shares_y   Shares of second value (array of num_shares)
+ * @param shares_sum Output shares of sum (array of num_shares)
+ * @param num_shares Number of shares (must be same for X and Y)
+ * @return 0 on success, -1 on failure
+ * 
+ * Example:
+ *   Alice has secret: 50
+ *   Bob has secret: 30
+ *   Both create shares, distributed to 5 parties
+ *   Each party computes: their_share_of_50 + their_share_of_30
+ *   Result: shares of 80 (nobody learned 50 or 30!)
+ */
+int mpc_secure_add(const mpc_context_t *ctx, const mpc_share_t *shares_x,
+                   const mpc_share_t *shares_y, mpc_share_t *shares_sum,
+                   uint8_t num_shares);
+
+/**
+ * Securely subtract two shared secrets.
+ * Given shares of X and shares of Y, compute shares of (X - Y).
+ * 
+ * Mathematical basis:
+ *   share_i(X) - share_i(Y) = share_i(X - Y)
+ * 
+ * @param ctx        MPC context
+ * @param shares_x   Shares of minuend (array of num_shares)
+ * @param shares_y   Shares of subtrahend (array of num_shares)
+ * @param shares_diff Output shares of difference (array of num_shares)
+ * @param num_shares Number of shares
+ * @return 0 on success, -1 on failure
+ */
+int mpc_secure_sub(const mpc_context_t *ctx, const mpc_share_t *shares_x,
+                   const mpc_share_t *shares_y, mpc_share_t *shares_diff,
+                   uint8_t num_shares);
+
+/**
+ * Securely multiply a shared secret by a public constant.
+ * Given shares of X and public constant C, compute shares of (X × C).
+ * This is efficient since C is public (everyone knows C).
+ * 
+ * Mathematical basis:
+ *   C × share_i(X) = share_i(C × X)
+ * 
+ * @param ctx         MPC context
+ * @param shares_x    Shares of secret value (array of num_shares)
+ * @param constant    Public constant (single byte, 0-255)
+ * @param shares_prod Output shares of product (array of num_shares)
+ * @param num_shares  Number of shares
+ * @return 0 on success, -1 on failure
+ * 
+ * Example:
+ *   Alice has secret salary: 50 (thousand dollars)
+ *   Compute yearly: 50 × 12 = 600
+ *   Everyone knows the constant 12, but nobody learns 50!
+ */
+int mpc_secure_mul_const(const mpc_context_t *ctx, const mpc_share_t *shares_x,
+                         uint8_t constant, mpc_share_t *shares_prod,
+                         uint8_t num_shares);
+
 #ifdef __cplusplus
 }
 #endif

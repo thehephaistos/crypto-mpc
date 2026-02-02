@@ -1,0 +1,24 @@
+# Docker Compose Override File (Example)
+#
+# This file provides an ALTERNATIVE mode for docker-compose.
+#
+# DEFAULT BEHAVIOR (without this file):
+#   docker-compose up  →  Runs tests automatically, exits when done
+#
+# OVERRIDE BEHAVIOR (rename to docker-compose.override.yml):
+#   docker-compose up  →  Starts interactive bash shell
+#
+# To enable interactive mode:
+#   mv docker-compose.override.yml.example docker-compose.override.yml
+#
+# To disable:
+#   mv docker-compose.override.yml docker-compose.override.yml.example
+#
+# TIP: For one-off interactive access, just use:
+#   docker-compose run --rm crypto-lib bash
+
+services:
+  crypto-lib:
+    stdin_open: true
+    tty: true
+    command: /bin/bash

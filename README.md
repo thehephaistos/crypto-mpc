@@ -134,21 +134,34 @@ for (int i = 0; i < 5; i++) {
 
 ## Docker Usage
 
-### Build and Run Tests
+### Automatic Testing (Default)
 ```bash
+# Build and run all tests (container exits automatically)
 docker-compose up --build
+
+# Or use the helper script
+./scripts/docker-build.sh
 ```
 
-### Interactive Development
+### Interactive Development Shell
 ```bash
-# Start a shell in the container
+# Start an interactive shell in the container
 docker-compose run --rm crypto-lib bash
 
 # Inside container, you can:
 cd build
+cmake .. && make
 ./simple_test
 ./comprehensive_test
 ```
+
+### Clean Test Run
+```bash
+# Full rebuild from scratch (CI/CD style)
+./scripts/docker-test.sh
+```
+
+**See [DOCKER_USAGE.md](DOCKER_USAGE.md) for detailed Docker usage guide.**
 
 ### Cleanup
 ```bash

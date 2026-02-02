@@ -1,5 +1,6 @@
 #include "sss/mpc.h"
 #include "sss/secret_sharing.h"
+#include "sss/field.h"
 #include "utils/secure_memory.h"
 #include "utils/error.h"
 #include "utils/random.h"
@@ -162,6 +163,152 @@ int mpc_validate_share(const mpc_context_t *ctx, const mpc_share_t *share) {
     // Check data length matches expected size
     if (share->share.data_len != ctx->value_size) {
         return -1;
+    }
+    
+    return 0;
+}
+
+/* ========================================================================
+ * Secure Arithmetic Operations
+ * ======================================================================== */
+
+int mpc_secure_add(const mpc_context_t *ctx, const mpc_share_t *shares_x,
+                   const mpc_share_t *shares_y, mpc_share_t *shares_sum,
+                   uint8_t num_shares) {
+    // Validate inputs
+    if (ctx == NULL || shares_x == NULL || shares_y == NULL || 
+        shares_sum == NULL) {
+        return -1;
+    }
+    
+    if (num_shares == 0) {
+        return -1;
+    }
+    
+    // Process each share
+    for (uint8_t i = 0; i < num_shares; i++) {
+        // Validate both input shares
+        if (mpc_validate_share(ctx, &shares_x[i]) != 0) {
+            return -1;
+        }
+        if (mpc_validate_share(ctx, &shares_y[i]) != 0) {
+            return -1;
+        }
+        
+        // Check that party IDs match
+        if (shares_x[i].party_id != shares_y[i].party_id) {
+            return -1;  // Shares must be from same party
+        }
+        
+        // Check that data lengths match
+        if (shares_x[i].share.data_len != shares_y[i].share.data_len) {
+            return -1;
+        }
+        
+        // Initialize output share
+        shares_sum[i].party_id = shares_x[i].party_id;
+        shares_sum[i].computation_id = ctx->computation_id;
+        shares_sum[i].share.index = shares_x[i].share.index;
+        shares_sum[i].share.data_len = shares_x[i].share.data_len;
+        shares_sum[i].share.threshold = shares_x[i].share.threshold;
+        
+        // Perform addition in GF(256) for each byte
+        for (size_t j = 0; j < shares_x[i].share.data_len; j++) {
+            shares_sum[i].share.data[j] = gf256_add(
+                shares_x[i].share.data[j],
+                shares_y[i].share.data[j]
+            );
+        }
+    }
+    
+    return 0;
+}
+
+int mpc_secure_sub(const mpc_context_t *ctx, const mpc_share_t *shares_x,
+                   const mpc_share_t *shares_y, mpc_share_t *shares_diff,
+                   uint8_t num_shares) {
+    // Validate inputs
+    if (ctx == NULL || shares_x == NULL || shares_y == NULL || 
+        shares_diff == NULL) {
+        return -1;
+    }
+    
+    if (num_shares == 0) {
+        return -1;
+    }
+    
+    // Process each share
+    for (uint8_t i = 0; i < num_shares; i++) {
+        // Validate both input shares
+        if (mpc_validate_share(ctx, &shares_x[i]) != 0) {
+            return -1;
+        }
+        if (mpc_validate_share(ctx, &shares_y[i]) != 0) {
+            return -1;
+        }
+        
+        // Check that party IDs match
+        if (shares_x[i].party_id != shares_y[i].party_id) {
+            return -1;
+        }
+        
+        // Check that data lengths match
+        if (shares_x[i].share.data_len != shares_y[i].share.data_len) {
+            return -1;
+        }
+        
+        // Initialize output share
+        shares_diff[i].party_id = shares_x[i].party_id;
+        shares_diff[i].computation_id = ctx->computation_id;
+        shares_diff[i].share.index = shares_x[i].share.index;
+        shares_diff[i].share.data_len = shares_x[i].share.data_len;
+        shares_diff[i].share.threshold = shares_x[i].share.threshold;
+        
+        // Perform subtraction in GF(256) for each byte
+        for (size_t j = 0; j < shares_x[i].share.data_len; j++) {
+            shares_diff[i].share.data[j] = gf256_sub(
+                shares_x[i].share.data[j],
+                shares_y[i].share.data[j]
+            );
+        }
+    }
+    
+    return 0;
+}
+
+int mpc_secure_mul_const(const mpc_context_t *ctx, const mpc_share_t *shares_x,
+                         uint8_t constant, mpc_share_t *shares_prod,
+                         uint8_t num_shares) {
+    // Validate inputs
+    if (ctx == NULL || shares_x == NULL || shares_prod == NULL) {
+        return -1;
+    }
+    
+    if (num_shares == 0) {
+        return -1;
+    }
+    
+    // Process each share
+    for (uint8_t i = 0; i < num_shares; i++) {
+        // Validate input share
+        if (mpc_validate_share(ctx, &shares_x[i]) != 0) {
+            return -1;
+        }
+        
+        // Initialize output share
+        shares_prod[i].party_id = shares_x[i].party_id;
+        shares_prod[i].computation_id = ctx->computation_id;
+        shares_prod[i].share.index = shares_x[i].share.index;
+        shares_prod[i].share.data_len = shares_x[i].share.data_len;
+        shares_prod[i].share.threshold = shares_x[i].share.threshold;
+        
+        // Perform multiplication in GF(256) for each byte
+        for (size_t j = 0; j < shares_x[i].share.data_len; j++) {
+            shares_prod[i].share.data[j] = gf256_mul(
+                shares_x[i].share.data[j],
+                constant
+            );
+        }
     }
     
     return 0;

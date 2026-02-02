@@ -17,6 +17,7 @@ TESTS=(
     "comprehensive_test"
     "secure_memory_test"
     "mpc_foundation_test"
+    "mpc_arithmetic_test"
 )
 
 PASSED=0

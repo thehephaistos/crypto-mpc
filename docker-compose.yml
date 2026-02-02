@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   crypto-lib:
     build:
@@ -9,11 +7,34 @@ services:
     container_name: sss-crypto-lib
     volumes:
       - .:/app
-      - build-cache:/app/build
     working_dir: /app
-    stdin_open: true
-    tty: true
-    command: /bin/bash
-
-volumes:
-  build-cache:
+    command: >
+      bash -c "
+      echo '========================================';
+      echo '  Building Project in Docker';
+      echo '========================================';
+      cd /app &&
+      rm -rf build &&
+      mkdir -p build &&
+      cd build &&
+      cmake .. &&
+      make &&
+      echo '' &&
+      echo '========================================';
+      echo '  Running Tests';
+      echo '========================================';
+      echo '' &&
+      ./simple_test &&
+      echo '' &&
+      ./comprehensive_test &&
+      echo '' &&
+      ./secure_memory_test &&
+      echo '' &&
+      ./mpc_foundation_test &&
+      echo '' &&
+      ./mpc_arithmetic_test &&
+      echo '' &&
+      echo '========================================';
+      echo '  ✓ All Tests Completed!';
+      echo '========================================';
+      "

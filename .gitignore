@@ -42,6 +42,8 @@ test_output/
 
 # Docker
 .docker/
+docker-compose.override.yml
+!docker-compose.override.yml.example
 
 # Backup files
 *.backup

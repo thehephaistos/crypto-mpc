@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
     libsodium-dev \
+    pkg-config \
     git \
     && rm -rf /var/lib/apt/lists/*
 
