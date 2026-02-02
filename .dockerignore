@@ -1,0 +1,32 @@
+# Build artifacts
+build/
+*.o
+*.a
+*.so
+*.dylib
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation (not needed in container)
+*.md
+docs/
+
+# CI/CD files
+.github/
+
+# Docker files (don't copy into themselves)
+Dockerfile
+docker-compose.yml
+.dockerignore

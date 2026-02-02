@@ -1,0 +1,74 @@
+name: CI Build & Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake libsodium-dev
+    
+    - name: Build project
+      run: |
+        mkdir -p build
+        cd build
+        cmake ..
+        make
+    
+    - name: Run tests
+      run: |
+        cd build
+        ./simple_test
+        ./comprehensive_test
+        ./secure_memory_test
+        ./mpc_foundation_test
+
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Install dependencies
+      run: |
+        brew install libsodium cmake
+    
+    - name: Build project
+      run: |
+        mkdir -p build
+        cd build
+        cmake ..
+        make
+    
+    - name: Run tests
+      run: |
+        cd build
+        ./simple_test
+        ./comprehensive_test
+        ./secure_memory_test
+        ./mpc_foundation_test
+
+  docker-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Build Docker image
+      run: docker build -t sss-crypto:test .
+    
+    - name: Run tests in Docker
+      run: docker run --rm sss-crypto:test

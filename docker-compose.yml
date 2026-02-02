@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  crypto-lib:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: shamir-secret-sharing:latest
+    container_name: sss-crypto-lib
+    volumes:
+      - .:/app
+      - build-cache:/app/build
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+volumes:
+  build-cache:
