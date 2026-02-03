@@ -313,3 +313,132 @@ int mpc_secure_mul_const(const mpc_context_t *ctx, const mpc_share_t *shares_x,
     
     return 0;
 }
+
+int mpc_secure_mul(const mpc_context_t *ctx, const mpc_share_t *shares_x,
+                   const mpc_share_t *shares_y, mpc_share_t *shares_prod,
+                   uint8_t num_shares) {
+    // ====================================================================
+    // Step 1: Validate all inputs
+    // ====================================================================
+    
+    if (ctx == NULL || shares_x == NULL || shares_y == NULL || 
+        shares_prod == NULL) {
+        return -1;
+    }
+    
+    if (num_shares == 0 || num_shares < ctx->threshold) {
+        return -1;  // Need at least threshold shares
+    }
+    
+    // Validate all input shares
+    for (uint8_t i = 0; i < num_shares; i++) {
+        if (mpc_validate_share(ctx, &shares_x[i]) != 0) {
+            return -1;
+        }
+        if (mpc_validate_share(ctx, &shares_y[i]) != 0) {
+            return -1;
+        }
+        
+        // Ensure party IDs match
+        if (shares_x[i].party_id != shares_y[i].party_id) {
+            return -1;
+        }
+        
+        // Ensure data lengths match
+        if (shares_x[i].share.data_len != shares_y[i].share.data_len) {
+            return -1;
+        }
+    }
+    
+    size_t data_len = shares_x[0].share.data_len;
+    
+    // ====================================================================
+    // Step 2: Local multiplication - each party multiplies their shares
+    // ====================================================================
+    
+    // Allocate secure memory for intermediate shares
+    mpc_share_t *intermediate = secure_malloc(num_shares * sizeof(mpc_share_t));
+    if (intermediate == NULL) {
+        return -1;
+    }
+    
+    // Lock the intermediate memory
+    secure_lock(intermediate, num_shares * sizeof(mpc_share_t));
+    
+    // Each party multiplies their shares element-wise in GF(256)
+    for (uint8_t i = 0; i < num_shares; i++) {
+        // Copy metadata
+        intermediate[i].party_id = shares_x[i].party_id;
+        intermediate[i].computation_id = ctx->computation_id;
+        intermediate[i].share.index = shares_x[i].share.index;
+        intermediate[i].share.data_len = data_len;
+        intermediate[i].share.threshold = ctx->threshold;
+        
+        // Multiply each byte in GF(256)
+        // This is the LOCAL computation each party does
+        for (size_t j = 0; j < data_len; j++) {
+            intermediate[i].share.data[j] = gf256_mul(
+                shares_x[i].share.data[j],
+                shares_y[i].share.data[j]
+            );
+        }
+    }
+    
+    // Note: At this point, intermediate shares represent points on a
+    // degree-2 polynomial (because we multiplied two degree-1 polynomials).
+    // We need degree reduction!
+    
+    // ====================================================================
+    // Step 3: Reconstruct the product
+    // ====================================================================
+    
+    // Allocate secure memory for the product
+    uint8_t *product = secure_malloc(data_len);
+    if (product == NULL) {
+        secure_unlock(intermediate, num_shares * sizeof(mpc_share_t));
+        secure_free(intermediate, num_shares * sizeof(mpc_share_t));
+        return -1;
+    }
+    secure_lock(product, data_len);
+    
+    // Reconstruct using the intermediate shares
+    // Note: In production MPC, this step would use Beaver triples
+    // to avoid reconstructing the intermediate value.
+    // Our simplified version reconstructs here for educational purposes.
+    int recon_result = mpc_reconstruct(ctx, intermediate, num_shares, product);
+    
+    if (recon_result != 0) {
+        // Reconstruction failed - cleanup and return error
+        secure_unlock(product, data_len);
+        secure_free(product, data_len);
+        secure_unlock(intermediate, num_shares * sizeof(mpc_share_t));
+        secure_free(intermediate, num_shares * sizeof(mpc_share_t));
+        return -1;
+    }
+    
+    // ====================================================================
+    // Step 4: Reshare the product (Degree Reduction)
+    // ====================================================================
+    
+    // Create new shares of the product as a degree-1 polynomial
+    // This is the "degree reduction" step!
+    int reshare_result = mpc_create_shares(ctx, product, shares_prod);
+    
+    // ====================================================================
+    // Step 5: Secure cleanup
+    // ====================================================================
+    
+    // Wipe and free intermediate shares
+    for (uint8_t i = 0; i < num_shares; i++) {
+        secure_wipe(&intermediate[i], sizeof(mpc_share_t));
+    }
+    secure_unlock(intermediate, num_shares * sizeof(mpc_share_t));
+    secure_free(intermediate, num_shares * sizeof(mpc_share_t));
+    
+    // Wipe and free product
+    secure_unlock(product, data_len);
+    secure_free(product, data_len);
+    
+    return reshare_result;
+}
+

@@ -139,6 +139,10 @@ target_link_libraries(mpc_foundation_test PRIVATE sss)
 add_executable(mpc_arithmetic_test tests/mpc_arithmetic_test.c)
 target_link_libraries(mpc_arithmetic_test PRIVATE sss)
 
+# MPC multiplication test executable
+add_executable(mpc_multiplication_test tests/mpc_multiplication_test.c)
+target_link_libraries(mpc_multiplication_test PRIVATE sss)
+
 # MPC demo executable
 add_executable(mpc_demo tests/mpc_demo.c)
 target_link_libraries(mpc_demo PRIVATE sss)

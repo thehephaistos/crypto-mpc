@@ -304,6 +304,55 @@ int mpc_secure_mul_const(const mpc_context_t *ctx, const mpc_share_t *shares_x,
                          uint8_t constant, mpc_share_t *shares_prod,
                          uint8_t num_shares);
 
+/**
+ * Securely multiply two shared secrets.
+ * Given shares of X and shares of Y, compute shares of (X × Y).
+ * 
+ * Mathematical challenge:
+ *   Multiplying degree-1 polynomials produces degree-2 polynomial.
+ *   This requires more shares to reconstruct (degree + 1).
+ *   We use a degree reduction protocol to convert back to degree-1.
+ * 
+ * Protocol (Simplified for Learning):
+ *   1. Each party multiplies their shares locally (in GF(256))
+ *   2. Products form shares of degree-2 polynomial
+ *   3. Reconstruct product using sufficient shares
+ *   4. Reshare as degree-1 polynomial
+ *   5. Secure cleanup of intermediate values
+ * 
+ * Security Model:
+ *   - Semi-honest (honest-but-curious) adversaries
+ *   - Parties follow protocol but try to learn information
+ *   - Suitable for trusted environments and learning
+ * 
+ * Production Note:
+ *   For malicious adversaries, use Beaver multiplication triples:
+ *   - Precompute random (a,b,c) where c = a×b
+ *   - Share a, b, c among parties
+ *   - Use these to compute X×Y without revealing intermediate values
+ *   - See: "Pragmatic MPC" (Damgård et al.) for details
+ * 
+ * Requirements:
+ *   - num_shares must be >= threshold (ideally all shares for best security)
+ *   - All shares must have same party_id ordering
+ *   - Both share sets must belong to same computation context
+ * 
+ * @param ctx        MPC context
+ * @param shares_x   Shares of first value (array of num_shares)
+ * @param shares_y   Shares of second value (array of num_shares)
+ * @param shares_prod Output shares of product (array of num_shares)
+ * @param num_shares Number of shares provided
+ * @return 0 on success, -1 on failure
+ * 
+ * Example:
+ *   Alice has secret: 5
+ *   Bob has secret: 6
+ *   Result: shares of 30 (nobody learned 5 or 6!)
+ */
+int mpc_secure_mul(const mpc_context_t *ctx, const mpc_share_t *shares_x,
+                   const mpc_share_t *shares_y, mpc_share_t *shares_prod,
+                   uint8_t num_shares);
+
 #ifdef __cplusplus
 }
 #endif

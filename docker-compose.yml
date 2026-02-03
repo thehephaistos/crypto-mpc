@@ -34,6 +34,8 @@ services:
       echo '' &&
       ./mpc_arithmetic_test &&
       echo '' &&
+      ./mpc_multiplication_test &&
+      echo '' &&
       echo '========================================';
       echo '  ✓ All Tests Completed!';
       echo '========================================';
