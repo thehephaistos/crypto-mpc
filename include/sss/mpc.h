@@ -353,6 +353,106 @@ int mpc_secure_mul(const mpc_context_t *ctx, const mpc_share_t *shares_x,
                    const mpc_share_t *shares_y, mpc_share_t *shares_prod,
                    uint8_t num_shares);
 
+/* ========================================================================
+ * High-Level MPC Functions
+ * 
+ * These convenience functions combine primitive operations to perform
+ * common multi-party computations.
+ * ======================================================================== */
+
+/**
+ * Compute the sum of multiple shared secrets.
+ * Given an array of share sets, compute shares of their sum.
+ * 
+ * Example:
+ *   5 employees each have salary shares
+ *   Compute total payroll without revealing individual salaries
+ * 
+ * @param ctx           MPC context
+ * @param share_sets    Array of share sets [num_values][num_shares]
+ * @param num_values    Number of values to sum
+ * @param num_shares    Number of shares per value
+ * @param shares_sum    Output shares of sum
+ * @return 0 on success, -1 on failure
+ */
+int mpc_secure_sum(const mpc_context_t *ctx, 
+                   const mpc_share_t **share_sets,
+                   uint8_t num_values,
+                   uint8_t num_shares,
+                   mpc_share_t *shares_sum);
+
+/**
+ * Compute the average of multiple shared secrets.
+ * Given an array of share sets, compute shares of their average.
+ * 
+ * Note: Division is done in plaintext after summing.
+ * For fully secure division, implement secure division protocol.
+ * 
+ * Example:
+ *   5 employees compute average salary
+ *   Result revealed, but individual salaries remain secret
+ * 
+ * @param ctx           MPC context
+ * @param share_sets    Array of share sets [num_values][num_shares]
+ * @param num_values    Number of values to average
+ * @param num_shares    Number of shares per value
+ * @param average       Output: the computed average
+ * @return 0 on success, -1 on failure
+ */
+int mpc_secure_average(const mpc_context_t *ctx,
+                       const mpc_share_t **share_sets,
+                       uint8_t num_values,
+                       uint8_t num_shares,
+                       uint8_t *average);
+
+/**
+ * Find the maximum of multiple shared secrets.
+ * Given an array of share sets, compute the maximum value.
+ * 
+ * Implementation:
+ *   Reconstruct all values and find max (simplified for learning).
+ *   For production: Use secure comparison circuits.
+ * 
+ * Example:
+ *   Sealed-bid auction - find highest bid
+ *   Winner announced, but bid amounts remain secret until winner found
+ * 
+ * @param ctx           MPC context
+ * @param share_sets    Array of share sets [num_values][num_shares]
+ * @param num_values    Number of values to compare
+ * @param num_shares    Number of shares per value
+ * @param maximum       Output: the maximum value
+ * @param max_index     Output: index of maximum value (optional, can be NULL)
+ * @return 0 on success, -1 on failure
+ */
+int mpc_secure_max(const mpc_context_t *ctx,
+                   const mpc_share_t **share_sets,
+                   uint8_t num_values,
+                   uint8_t num_shares,
+                   uint8_t *maximum,
+                   uint8_t *max_index);
+
+/**
+ * Compare two shared secrets and determine which is greater.
+ * Returns shares of 1 if X > Y, shares of 0 otherwise.
+ * 
+ * Implementation:
+ *   Simplified: Reconstruct and compare (for learning).
+ *   Production: Use bit-decomposition and secure comparison circuits.
+ * 
+ * @param ctx           MPC context
+ * @param shares_x      Shares of first value
+ * @param shares_y      Shares of second value
+ * @param num_shares    Number of shares
+ * @param result        Output: 1 if X > Y, 0 otherwise
+ * @return 0 on success, -1 on failure
+ */
+int mpc_secure_greater(const mpc_context_t *ctx,
+                       const mpc_share_t *shares_x,
+                       const mpc_share_t *shares_y,
+                       uint8_t num_shares,
+                       uint8_t *result);
+
 #ifdef __cplusplus
 }
 #endif

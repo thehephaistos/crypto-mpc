@@ -36,6 +36,8 @@ services:
       echo '' &&
       ./mpc_multiplication_test &&
       echo '' &&
+      ./mpc_highlevel_test &&
+      echo '' &&
       echo '========================================';
       echo '  ✓ All Tests Completed!';
       echo '========================================';

@@ -147,6 +147,26 @@ target_link_libraries(mpc_multiplication_test PRIVATE sss)
 add_executable(mpc_demo tests/mpc_demo.c)
 target_link_libraries(mpc_demo PRIVATE sss)
 
+# MPC high-level test executable
+add_executable(mpc_highlevel_test tests/mpc_highlevel_test.c)
+target_link_libraries(mpc_highlevel_test PRIVATE sss)
+
+# ============================================================================
+# Example Programs
+# ============================================================================
+
+# Salary Average Example
+add_executable(salary_average examples/salary_average.c)
+target_link_libraries(salary_average PRIVATE sss)
+
+# Sealed Auction Example
+add_executable(sealed_auction examples/sealed_auction.c)
+target_link_libraries(sealed_auction PRIVATE sss)
+
+# Private Voting Example
+add_executable(private_voting examples/private_voting.c)
+target_link_libraries(private_voting PRIVATE sss)
+
 # ============================================================================
 # Installation Rules
 # ============================================================================

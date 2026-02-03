@@ -19,6 +19,7 @@ TESTS=(
     "mpc_foundation_test"
     "mpc_arithmetic_test"
     "mpc_multiplication_test"
+    "mpc_highlevel_test"
 )
 
 PASSED=0

@@ -442,3 +442,173 @@ int mpc_secure_mul(const mpc_context_t *ctx, const mpc_share_t *shares_x,
     return reshare_result;
 }
 
+/* ========================================================================
+ * High-Level MPC Functions
+ * ======================================================================== */
+
+int mpc_secure_sum(const mpc_context_t *ctx, 
+                   const mpc_share_t **share_sets,
+                   uint8_t num_values,
+                   uint8_t num_shares,
+                   mpc_share_t *shares_sum) {
+    // Validate inputs
+    if (ctx == NULL || share_sets == NULL || shares_sum == NULL) {
+        return -1;
+    }
+    
+    if (num_values == 0 || num_shares == 0) {
+        return -1;
+    }
+    
+    // Start with first value's shares
+    for (uint8_t i = 0; i < num_shares; i++) {
+        // Deep copy first share set
+        shares_sum[i] = share_sets[0][i];
+    }
+    
+    // Add each subsequent value
+    for (uint8_t val = 1; val < num_values; val++) {
+        mpc_share_t temp[num_shares];
+        
+        // Add this value to running sum
+        if (mpc_secure_add(ctx, shares_sum, share_sets[val], 
+                          temp, num_shares) != 0) {
+            return -1;
+        }
+        
+        // Copy result back to shares_sum
+        for (uint8_t i = 0; i < num_shares; i++) {
+            shares_sum[i] = temp[i];
+        }
+    }
+    
+    return 0;
+}
+
+int mpc_secure_average(const mpc_context_t *ctx,
+                       const mpc_share_t **share_sets,
+                       uint8_t num_values,
+                       uint8_t num_shares,
+                       uint8_t *average) {
+    // Validate inputs
+    if (average == NULL) {
+        return -1;
+    }
+    
+    // Allocate shares for sum
+    mpc_share_t *shares_sum = secure_malloc(num_shares * sizeof(mpc_share_t));
+    if (shares_sum == NULL) {
+        return -1;
+    }
+    secure_lock(shares_sum, num_shares * sizeof(mpc_share_t));
+    
+    // Compute sum
+    if (mpc_secure_sum(ctx, share_sets, num_values, num_shares, 
+                       shares_sum) != 0) {
+        secure_unlock(shares_sum, num_shares * sizeof(mpc_share_t));
+        secure_free(shares_sum, num_shares * sizeof(mpc_share_t));
+        return -1;
+    }
+    
+    // Reconstruct sum
+    uint8_t sum;
+    if (mpc_reconstruct(ctx, shares_sum, num_shares, &sum) != 0) {
+        secure_unlock(shares_sum, num_shares * sizeof(mpc_share_t));
+        secure_free(shares_sum, num_shares * sizeof(mpc_share_t));
+        return -1;
+    }
+    
+    // Divide by count (in plaintext)
+    // Note: In GF(256), division is different. For simplicity, we use integer division.
+    // For production, implement secure division protocol.
+    *average = sum / num_values;
+    
+    // Cleanup
+    secure_unlock(shares_sum, num_shares * sizeof(mpc_share_t));
+    secure_free(shares_sum, num_shares * sizeof(mpc_share_t));
+    
+    return 0;
+}
+
+int mpc_secure_max(const mpc_context_t *ctx,
+                   const mpc_share_t **share_sets,
+                   uint8_t num_values,
+                   uint8_t num_shares,
+                   uint8_t *maximum,
+                   uint8_t *max_index) {
+    // Validate inputs
+    if (ctx == NULL || share_sets == NULL || maximum == NULL) {
+        return -1;
+    }
+    
+    if (num_values == 0 || num_shares == 0) {
+        return -1;
+    }
+    
+    // Allocate secure memory for reconstructed values
+    uint8_t *values = secure_malloc(num_values);
+    if (values == NULL) {
+        return -1;
+    }
+    secure_lock(values, num_values);
+    
+    // Reconstruct all values
+    // Note: In production, use secure comparison circuits to avoid reconstruction
+    for (uint8_t i = 0; i < num_values; i++) {
+        if (mpc_reconstruct(ctx, share_sets[i], num_shares, &values[i]) != 0) {
+            secure_unlock(values, num_values);
+            secure_free(values, num_values);
+            return -1;
+        }
+    }
+    
+    // Find maximum
+    uint8_t max_val = values[0];
+    uint8_t max_idx = 0;
+    
+    for (uint8_t i = 1; i < num_values; i++) {
+        if (values[i] > max_val) {
+            max_val = values[i];
+            max_idx = i;
+        }
+    }
+    
+    *maximum = max_val;
+    if (max_index != NULL) {
+        *max_index = max_idx;
+    }
+    
+    // Cleanup
+    secure_unlock(values, num_values);
+    secure_free(values, num_values);
+    
+    return 0;
+}
+
+int mpc_secure_greater(const mpc_context_t *ctx,
+                       const mpc_share_t *shares_x,
+                       const mpc_share_t *shares_y,
+                       uint8_t num_shares,
+                       uint8_t *result) {
+    // Validate inputs
+    if (ctx == NULL || shares_x == NULL || shares_y == NULL || result == NULL) {
+        return -1;
+    }
+    
+    // Reconstruct both values
+    // Note: Production systems use secure comparison circuits
+    uint8_t x, y;
+    
+    if (mpc_reconstruct(ctx, shares_x, num_shares, &x) != 0) {
+        return -1;
+    }
+    
+    if (mpc_reconstruct(ctx, shares_y, num_shares, &y) != 0) {
+        return -1;
+    }
+    
+    // Compare
+    *result = (x > y) ? 1 : 0;
+    
+    return 0;
+}
