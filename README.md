@@ -204,8 +204,8 @@ All contributors are recognized in release notes and the project README.
 
 ## 📬 Contact
 
-- **GitHub:** [@thehephaistosI](https://github.com/thehephaistosI)
-- **LinkedIn:** [Oguz Kirmizi](https://linkedin.com/in/oguz-kirmizi)
+- **GitHub:** [@thehephaistos](https://github.com/thehephaistosI)
+- **LinkedIn:** [Oguz Kirmizi](https://www.linkedin.com/in/o%C4%9Fuz-kirmizi-323185222/)
 
 Questions? Open an issue or reach out on LinkedIn!
 
