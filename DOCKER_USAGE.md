@@ -1,346 +1,601 @@
 # Docker Usage Guide
 
-## ✅ Problem Fixed!
+Complete guide to using Docker with Crypto-MPC for development, testing, and deployment.
 
-The Docker container no longer freezes. The issue was that `command: /bin/bash` in docker-compose.yml was starting an interactive shell that waited for input.
+## 📦 Quick Start
 
----
-
-## 🚀 Quick Commands
-
-### Run Tests (Default Mode)
 ```bash
-# Method 1: Simple
+# Clone repository
+git clone https://github.com/thehephaistosI/crypto-mpc.git
+cd crypto-mpc
+
+# Build and run tests (one command!)
 docker-compose up --build
-
-# Method 2: With cleanup
-docker-compose down && docker-compose up --build
-
-# Method 3: Using the script (recommended)
-./scripts/docker-build.sh
-
-# Method 4: Clean build from scratch
-./scripts/docker-test.sh
 ```
 
-### Interactive Development Shell
-```bash
-# Method 1: Using docker-compose run (ignores override file)
-docker-compose run --rm crypto-lib bash
-
-# Method 2: Start service with override file
-# (rename docker-compose.override.yml.example to docker-compose.override.yml first)
-mv docker-compose.override.yml docker-compose.override.yml.disabled
-docker-compose up
-
-# To enable interactive mode permanently:
-mv docker-compose.override.yml.disabled docker-compose.override.yml
-```
+That's it! Docker handles all dependencies, builds the project, and runs all tests.
 
 ---
 
-## 📁 Files Explained
+## 🎯 Use Cases
 
-### `docker-compose.yml` (Main file - Runs tests)
-- **Default behavior:** Builds project and runs all tests
-- **Command:** Rebuilds from source and executes all test binaries
-- **Volume:** Mounts current directory so changes are reflected
-- **No caching:** Always builds fresh to catch new changes
+### 1. Automated Testing (Default)
 
-### `docker-compose.override.yml` (Optional - Interactive mode)
-- **Purpose:** Override default behavior for debugging
-- **Activates:** When file exists in project root
-- **Effect:** Starts interactive bash shell instead of running tests
-- **Usage:** For manual testing and exploration
+**What it does:**
+- Builds fresh Docker image
+- Compiles entire project
+- Runs all 7 test suites (42+ tests)
+- Exits automatically when done
 
-### `scripts/docker-build.sh`
-- Quick build and test
-- Uses existing cache
-- Cleans up after completion
-- Shows pass/fail status
-
-### `scripts/docker-test.sh`
-- Full clean rebuild with `--no-cache`
-- Removes old containers
-- Best for ensuring clean slate
-- CI/CD style testing
-
----
-
-## 🔄 Workflow Examples
-
-### Development Workflow (Edit → Test)
-```bash
-# 1. Edit source files on your host machine
-vim src/core/field_arithmetic.c
-
-# 2. Run tests in Docker (picks up changes)
-docker-compose up --build
-
-# 3. Tests run automatically and container exits
-# 4. Repeat!
-```
-
-### Debugging Workflow
-```bash
-# Start interactive shell
-docker-compose run --rm crypto-lib bash
-
-# Inside container:
-cd build
-cmake .. && make
-./simple_test
-gdb ./comprehensive_test
-exit
-```
-
-### Clean Test Run (CI/CD style)
-```bash
-./scripts/docker-test.sh
-```
-
----
-
-## 🎯 Different Modes
-
-### Mode 1: Automatic Testing (Default)
-**When to use:** Normal development, CI/CD, quick testing
-
+**Command:**
 ```bash
 docker-compose up --build
 ```
 
-**What happens:**
-1. ✅ Mounts your source code
-2. ✅ Deletes old build directory
-3. ✅ Runs CMake
-4. ✅ Compiles project
-5. ✅ Runs all 4 tests
-6. ✅ Exits with success/failure code
-7. ✅ Container stops automatically
-
-**Output format:**
+**Expected Output:**
 ```
+[+] Building 45.2s (11/11) FINISHED
+[+] Running 1/1
+ ✔ Container sss-crypto-lib Created
+
+Attaching to sss-crypto-lib
+
 ========================================
   Building Project in Docker
 ========================================
+-- The C compiler identification is GNU 11.4.0
 -- Configuring done
 -- Build files written to: /app/build
-[100%] Built target comprehensive_test
+[100%] Built target mpc_highlevel_test
 
 ========================================
   Running Tests
 ========================================
 
-[Test output...]
-
-========================================
-  ✓ All Tests Completed!
-========================================
-```
-
-### Mode 2: Interactive Shell
-**When to use:** Debugging, exploration, manual testing
-
-```bash
-docker-compose run --rm crypto-lib bash
-```
-
-**What happens:**
-1. ✅ Starts container
-2. ✅ Drops you into bash shell
-3. ✅ You have full control
-4. ✅ Exit when done (container auto-removes)
-
-**Example session:**
-```bash
-$ docker-compose run --rm crypto-lib bash
-root@abc123:/app# cd build
-root@abc123:/app/build# ls
-root@abc123:/app/build# cmake .. && make
-root@abc123:/app/build# ./simple_test
-root@abc123:/app/build# exit
-```
-
-### Mode 3: One-Off Commands
-**When to use:** Single test, specific command
-
-```bash
-# Run just one test
-docker-compose run --rm crypto-lib bash -c "cd build && cmake .. && make && ./simple_test"
-
-# Check file structure
-docker-compose run --rm crypto-lib ls -la
-
-# View a header file
-docker-compose run --rm crypto-lib cat include/sss/field.h
+✓✓✓ ALL TESTS PASSED! ✓✓✓
 ```
 
 ---
 
-## 🛠️ Troubleshooting
+### 2. Interactive Development Shell
 
-### Container Still Freezes
+**What it does:**
+- Starts container with interactive bash shell
+- Access to all build tools and source code
+- Make changes and test immediately
+
+**Command:**
 ```bash
-# Stop everything
-docker-compose down
-
-# Check for override file
-ls docker-compose.override.yml
-
-# If it exists, rename it temporarily
-mv docker-compose.override.yml docker-compose.override.yml.disabled
-
-# Try again
-docker-compose up --build
-```
-
-### Build Fails
-```bash
-# Clean everything
-docker-compose down
-docker system prune -f
-
-# Rebuild from scratch
-docker-compose build --no-cache
-docker-compose up
-```
-
-### Tests Fail
-```bash
-# Run interactively to see what's wrong
 docker-compose run --rm crypto-lib bash
-
-# Inside container, run tests manually:
-cd build
-cmake .. && make
-./simple_test          # Run each test individually
-./comprehensive_test
 ```
 
-### Changes Not Reflected
+**Inside container:**
 ```bash
-# The volume mount should work automatically, but if not:
-docker-compose down
-docker-compose up --build
+# You're now inside: root@abc123:/app#
 
-# Or force full rebuild:
+# Navigate
+ls                    # See project files
+cd build              # Go to build directory
+
+# Build
+cmake ..
+make
+
+# Run specific tests
+./simple_test
+./mpc_arithmetic_test
+
+# Run examples
+./salary_average
+./sealed_auction
+
+# Exit container
+exit
+```
+
+---
+
+### 3. Clean Rebuild (CI/CD Style)
+
+**What it does:**
+- Removes old containers and images
+- Builds from scratch (no cache)
+- Runs all tests
+- Reports success/failure
+
+**Command:**
+```bash
 ./scripts/docker-test.sh
 ```
 
-### Permission Issues
+**Or manually:**
 ```bash
-# If files created in container have wrong permissions:
-sudo chown -R $USER:$USER .
+# Clean everything
+docker-compose down
+docker system prune -af
 
-# Or run container as your user:
-docker-compose run --rm -u $(id -u):$(id -g) crypto-lib bash
+# Rebuild without cache
+docker-compose build --no-cache
+
+# Run tests
+docker-compose up
 ```
 
 ---
 
-## 📊 Exit Codes
+### 4. Development with Live Code Changes
 
-| Exit Code | Meaning |
-|-----------|---------|
-| 0 | ✅ All tests passed |
-| 1-255 | ❌ Test failure or build error |
-
-Check exit code:
+**Setup:**
 ```bash
-docker-compose up --build
-echo $?  # Shows exit code
+# Start container with code mounted
+docker-compose run --rm crypto-lib bash
+```
+
+**Workflow:**
+```bash
+# Inside container:
+cd /app
+
+# Your host code is mounted - changes appear immediately!
+# Edit files on your host machine (VSCode, etc.)
+# Then rebuild inside container:
+
+cd build
+cmake ..
+make
+./your_test
+```
+
+**Note:** The `/app` directory is mounted from your host, so changes you make on your Mac appear instantly in the container!
+
+---
+
+## 🔧 Advanced Usage
+
+### Custom Build Commands
+
+**Build without running:**
+```bash
+docker-compose build
+```
+
+**Force rebuild:**
+```bash
+docker-compose build --no-cache
+```
+
+**Pull latest base image:**
+```bash
+docker-compose pull
 ```
 
 ---
 
-## 🔍 Viewing Logs
+### Running Specific Tests
 
+**Method 1: Override command**
 ```bash
-# View logs from last run
+docker-compose run --rm crypto-lib bash -c "cd build && ./mpc_arithmetic_test"
+```
+
+**Method 2: Interactive shell**
+```bash
+docker-compose run --rm crypto-lib bash
+cd build
+./mpc_arithmetic_test
+```
+
+---
+
+### Debugging Build Issues
+
+**View build logs:**
+```bash
+docker-compose build 2>&1 | tee build.log
+```
+
+**Check container logs:**
+```bash
 docker-compose logs
+```
 
-# Follow logs in real-time
-docker-compose logs -f
-
-# View specific service logs
-docker-compose logs crypto-lib
+**Inspect container:**
+```bash
+docker-compose run --rm crypto-lib bash
+# Poke around, check what's installed
+apt list --installed
+which gcc
+gcc --version
 ```
 
 ---
 
-## 🧹 Cleanup Commands
+### Performance: Volume Caching
 
+The `docker-compose.yml` uses a named volume for build caching:
+
+```yaml
+volumes:
+  - .:/app                    # Source code (live updates)
+  - build-cache:/app/build    # Build artifacts (cached)
+```
+
+**Benefits:**
+- Faster rebuilds (CMake cache preserved)
+- Compiled objects reused
+- ~10x faster than rebuilding from scratch
+
+**Clear cache if needed:**
 ```bash
-# Stop and remove containers
+docker volume rm personal_projects_build-cache
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Issue: Container Freezes/Hangs
+
+**Symptom:**
+```
+Attaching to sss-crypto-lib
+[... nothing happens ...]
+```
+
+**Solution:**
+```bash
+# Stop everything
+Ctrl+C
 docker-compose down
 
-# Remove containers and volumes
-docker-compose down -v
+# Remove stuck containers
+docker ps -a
+docker rm -f $(docker ps -aq)
 
-# Remove everything including images
-docker-compose down --rmi all -v
-
-# Full Docker cleanup
-docker system prune -af
-docker volume prune -f
+# Rebuild and retry
+docker-compose up --build
 ```
 
 ---
 
-## ⚡ Performance Tips
+### Issue: Build Fails - "libsodium not found"
 
-### Faster Builds
-1. **Use build cache:** `docker-compose build` (default)
-2. **Keep dependencies in Dockerfile:** Layers are cached
-3. **Don't use --no-cache:** Unless you need clean build
+**Symptom:**
+```
+CMake Error: Could NOT find PkgConfig
+Could NOT find libsodium
+```
 
-### Faster Tests
-1. **Run specific tests:**
-   ```bash
-   docker-compose run --rm crypto-lib bash -c "cd build && cmake .. && make && ./simple_test"
-   ```
+**Solution:**
 
-2. **Keep container running for multiple tests:**
-   ```bash
-   docker-compose run --rm crypto-lib bash
-   # Then run tests multiple times inside
-   ```
+Check `Dockerfile` has correct packages:
+```dockerfile
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    libsodium-dev \
+    pkg-config \     # ← Make sure this is here!
+    git
+```
 
----
-
-## 🎓 Understanding Docker Compose Override
-
-Docker Compose uses a **layered approach**:
-
-1. **docker-compose.yml** (base config)
-2. **docker-compose.override.yml** (optional overrides)
-
-If both files exist, Docker Compose **merges** them:
-- `docker-compose up` → uses both files
-- `docker-compose -f docker-compose.yml up` → uses only base file
-
-**Tip:** Rename override file when not needed:
+Rebuild without cache:
 ```bash
-# Disable override
-mv docker-compose.override.yml docker-compose.override.yml.disabled
-
-# Enable override
-mv docker-compose.override.yml.disabled docker-compose.override.yml
+docker-compose build --no-cache
 ```
 
 ---
 
-## 🎯 Summary
+### Issue: "Port already in use"
 
-| Command | Use Case | Behavior |
-|---------|----------|----------|
-| `docker-compose up --build` | Quick test | Build + run tests, auto-exit |
-| `./scripts/docker-build.sh` | Standard testing | Build + test + cleanup |
-| `./scripts/docker-test.sh` | Clean CI/CD test | Full rebuild, no cache |
-| `docker-compose run --rm crypto-lib bash` | Interactive debug | Shell access |
-| `docker-compose down` | Cleanup | Stop and remove |
+**Not applicable** to this project (we don't expose ports), but if you modify the setup:
 
-**Default behavior now:** Container runs tests and exits (no freeze!)
+```bash
+# Find what's using the port
+lsof -i :8080
 
-**For interactive shell:** Use `docker-compose run --rm crypto-lib bash`
+# Stop conflicting container
+docker ps
+docker stop <container-id>
+```
+
+---
+
+### Issue: "No space left on device"
+
+**Docker uses a lot of disk space. Clean up:**
+
+```bash
+# Remove unused containers, images, volumes
+docker system prune -af --volumes
+
+# Check disk usage
+docker system df
+```
+
+---
+
+### Issue: Changes Not Reflected
+
+**Problem:** You edited code but container still runs old version.
+
+**Cause:** Using cached image.
+
+**Solution:**
+```bash
+# Rebuild image
+docker-compose build --no-cache
+
+# Or restart container
+docker-compose down
+docker-compose up --build
+```
+
+---
+
+### Issue: Permission Denied (Linux)
+
+**Symptom:**
+```
+Permission denied: '/app/build'
+```
+
+**Solution:**
+
+Linux: Docker runs as root, files created have wrong ownership.
+
+```bash
+# Inside container, match host UID
+docker-compose run --rm --user $(id -u):$(id -g) crypto-lib bash
+
+# Or fix ownership after
+sudo chown -R $USER:$USER build/
+```
+
+---
+
+## 🔒 Security Best Practices
+
+### 1. Don't Build Unknown Code
+
+Only build from trusted sources. Dockerfile can execute arbitrary commands.
+
+### 2. Keep Base Image Updated
+
+```bash
+# Update to latest Ubuntu packages
+docker-compose build --pull --no-cache
+```
+
+### 3. Scan for Vulnerabilities
+
+```bash
+# Use Docker's built-in scanner
+docker scan shamir-secret-sharing:latest
+```
+
+### 4. Use Specific Base Image Versions
+
+In production, pin versions:
+```dockerfile
+FROM ubuntu:22.04@sha256:specific-hash
+```
+
+---
+
+## 📊 Performance Tips
+
+### 1. Use BuildKit
+
+Enable Docker BuildKit for faster builds:
+
+```bash
+# In ~/.bashrc or ~/.zshrc
+export DOCKER_BUILDKIT=1
+export COMPOSE_DOCKER_CLI_BUILD=1
+
+# Then rebuild
+docker-compose build
+```
+
+### 2. Multi-Stage Builds
+
+For smaller images (future optimization):
+
+```dockerfile
+# Stage 1: Build
+FROM ubuntu:22.04 AS builder
+# ... build everything ...
+
+# Stage 2: Runtime (smaller!)
+FROM ubuntu:22.04 AS runtime
+COPY --from=builder /app/build /app/build
+```
+
+### 3. Layer Caching
+
+Order Dockerfile commands from least to most frequently changing:
+
+```dockerfile
+# Good (dependencies rarely change)
+RUN apt-get update && apt-get install -y ...
+COPY CMakeLists.txt .
+COPY src/ src/
+
+# Bad (invalidates cache on every code change)
+COPY . .
+RUN apt-get update && apt-get install -y ...
+```
+
+---
+
+## 🚀 CI/CD Integration
+
+### GitHub Actions
+
+```yaml
+name: Docker Build & Test
+
+on: [push, pull_request]
+
+jobs:
+  docker-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Build Docker image
+        run: docker-compose build
+      
+      - name: Run tests
+        run: docker-compose up --abort-on-container-exit
+      
+      - name: Clean up
+        run: docker-compose down
+```
+
+### GitLab CI
+
+```yaml
+docker-test:
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker-compose build
+    - docker-compose up --abort-on-container-exit
+```
+
+---
+
+## 📝 Docker Compose Reference
+
+### Our Configuration
+
+```yaml
+services:
+  crypto-lib:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: shamir-secret-sharing:latest
+    container_name: sss-crypto-lib
+    volumes:
+      - .:/app                    # Source code (live)
+    working_dir: /app
+    command: >
+      bash -c "
+      cd /app &&
+      rm -rf build &&
+      mkdir -p build &&
+      cd build &&
+      cmake .. &&
+      make &&
+      ./simple_test &&
+      ./comprehensive_test &&
+      ./secure_memory_test &&
+      ./mpc_foundation_test &&
+      ./mpc_arithmetic_test &&
+      ./mpc_multiplication_test &&
+      ./mpc_highlevel_test
+      "
+```
+
+**Explanation:**
+- `build: context: .` - Build from current directory
+- `volumes: - .:/app` - Mount source code
+- `command:` - Run on container start
+- `bash -c "..."` - Execute test sequence
+
+---
+
+## 🎓 Learning Docker
+
+New to Docker? Here are key concepts:
+
+### Images vs Containers
+
+- **Image:** Blueprint (like a class in OOP)
+- **Container:** Running instance (like an object)
+
+```bash
+docker images              # List images (blueprints)
+docker ps                  # List running containers
+docker ps -a               # List all containers
+```
+
+### Dockerfile vs docker-compose.yml
+
+- **Dockerfile:** How to build an image
+- **docker-compose.yml:** How to run containers
+
+### Volumes
+
+Mount host directories into containers:
+
+```yaml
+volumes:
+  - .:/app                 # . = host path, /app = container path
+```
+
+Changes on host → Visible in container immediately!
+
+---
+
+## 🆘 Getting Help
+
+**Docker not working?**
+
+1. Check Docker is running:
+   ```bash
+   docker --version
+   docker ps
+   ```
+
+2. Check docker-compose version:
+   ```bash
+   docker-compose --version
+   ```
+
+3. View detailed logs:
+   ```bash
+   docker-compose up --build 2>&1 | tee docker.log
+   ```
+
+4. Ask for help:
+   - Open GitHub issue
+   - Reach out on LinkedIn: [Oguz Kirmizi](https://linkedin.com/in/oguz-kirmizi)
+
+---
+
+## ✅ Summary: Common Commands
+
+```bash
+# Build and run tests (most common)
+docker-compose up --build
+
+# Interactive shell
+docker-compose run --rm crypto-lib bash
+
+# Clean rebuild
+docker-compose down
+docker-compose build --no-cache
+docker-compose up
+
+# Stop everything
+docker-compose down
+
+# Clean up disk space
+docker system prune -af
+
+# View logs
+docker-compose logs
+
+# Remove volumes
+docker volume rm personal_projects_build-cache
+```
+
+---
+
+**Docker simplifies development!** No need to install dependencies, worry about system differences, or "works on my machine" issues. 🎉
+
+*Last Updated: February 2026*

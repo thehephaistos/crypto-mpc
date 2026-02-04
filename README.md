@@ -21,8 +21,8 @@ A production-grade cryptographic library implementing Shamir's Secret Sharing, M
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/crypto-lib.git
-cd crypto-lib
+git clone https://github.com/thehephaistosI/crypto-mpc.git
+cd crypto-mpc
 
 # Build and test in Docker
 ./scripts/docker-build.sh
@@ -190,21 +190,38 @@ This project uses GitHub Actions for continuous integration:
 - Docker build verification
 - Runs on every push and pull request
 
-## Contributing
+## 🤝 Contributing
 
-Contributions are welcome! Please ensure:
-1. All tests pass
-2. Code follows project style
-3. Add tests for new features
-4. Update documentation
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+**Ways to contribute:**
+- 🐛 Report bugs
+- 💡 Suggest features
+- 📚 Improve documentation
+- ✨ Submit code
+
+All contributors are recognized in release notes and the project README.
+
+## 📬 Contact
+
+- **GitHub:** [@thehephaistosI](https://github.com/thehephaistosI)
+- **LinkedIn:** [Oguz Kirmizi](https://linkedin.com/in/oguz-kirmizi)
+
+Questions? Open an issue or reach out on LinkedIn!
 
 ## License
 
 MIT License (see [LICENSE](LICENSE))
 
-## Security
+## 🔒 Security
 
-This library handles cryptographic operations. For security concerns:
-- Report vulnerabilities privately
-- Use secure memory management functions
-- Follow best practices for key storage
+This library handles cryptographic operations and sensitive data.
+
+**Security Model:** Semi-honest (honest-but-curious) adversaries
+
+**For security vulnerabilities:**
+- **DO NOT** open public issues
+- Report privately via GitHub Security Advisories
+- Or contact: LinkedIn DM to [Oguz Kirmizi](https://linkedin.com/in/oguz-kirmizi)
+
+See [SECURITY.md](SECURITY.md) for detailed security information and upgrade paths to malicious security.
