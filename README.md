@@ -222,6 +222,6 @@ This library handles cryptographic operations and sensitive data.
 **For security vulnerabilities:**
 - **DO NOT** open public issues
 - Report privately via GitHub Security Advisories
-- Or contact: LinkedIn DM to [Oguz Kirmizi](https://linkedin.com/in/oguz-kirmizi)
+- Or contact: LinkedIn DM to [Oguz Kirmizi](https://www.linkedin.com/in/o%C4%9Fuz-kirmizi-323185222/)
 
 See [SECURITY.md](SECURITY.md) for detailed security information and upgrade paths to malicious security.
