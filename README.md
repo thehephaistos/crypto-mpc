@@ -1,6 +1,6 @@
 # Shamir's Secret Sharing & Cryptographic Library
 
-A production-grade cryptographic library implementing Shamir's Secret Sharing, Multi-Party Computation, and advanced cryptographic primitives.
+A cryptographic library implementing Shamir's Secret Sharing, Multi-Party Computation, and advanced cryptographic primitives.
 
 ## Features
 
